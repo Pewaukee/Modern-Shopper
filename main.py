@@ -4,9 +4,13 @@ from bs4 import BeautifulSoup # for making requests to the google search engine
 
 from tkinter import * # for gui
 
+import time # for debugging
+
 from selenium import webdriver # for accessing and searching amazon's database of items
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSelectorException
+from selenium.webdriver.support.ui import WebDriverWait # for implicitly waiting
+from selenium.webdriver.support import expected_conditions as EC
 
 from PIL import ImageTk, Image # for inserting an image as a label
 
@@ -65,20 +69,26 @@ class Shopper(object):
         
         driver = webdriver.Chrome('C:/Users/kvsha/Downloads/chromedriver_win32/chromedriver.exe')
         driver.get('https://amazon.com')
-        
-        amazon_text_box = driver.find_elements(By.HREF, '/Amazon-Video/b/?ie=UTF8&amp;node=2858778011&amp;ref_=nav_cs_prime_video')
-        print(amazon_text_box.text)
 
-        #TODO find out how to extract the proper data with find_element of the proper text box
+        driver.maximize_window() # For maximizing window
 
-        with open('file.txt', 'w') as f:
-            f.writelines(amazon_text_box.text)
-        #id_box = driver.find_element('issprefix') # this is accessing the search box
-        #id_box.send_keys(text) # this is putting in the aforementioned text box
+        # either visibility_of_element_located or presence_of_element_located works
+        # put an implicit wait for 20 seconds to find the text box, then send self.text to the search box
+        amazon_text_box = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.ID, 'twotabsearchtextbox')))
+        amazon_text_box.send_keys(text)
 
-        #search_button = driver.find_element('nav-search-submit-button') # this finds the search button
-        #search_button.click() # click the button to get to the next page after searching
+        # find the button and click it after the text has been inserted 
+        search_button = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.ID, 'nav-search-submit-button')))
+        search_button.click() # click the button
 
+
+        #TODO fix selenium.common.exceptions.WebDriverException: Message: unknown error: cannot determine loading status
+        #TODO fix selenium.common.exceptions.WebDriverException: Message: unknown error: unexpected command response
+    
+        # get all the text in a list
+        #item_information = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.CLASS_NAME, 'a-size-base-plus a-color-base a-text-normal')))
+        #item_information = item_information[:10] # get the first 10 elements
+        #print(len(item_information))
 
 def placeGUI(event, obj, window): # this is how to configure placegui when resizing the window
     #print("placeGUI function has been run")

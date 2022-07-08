@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSelectorException
 from selenium.webdriver.support.ui import WebDriverWait # for implicitly waiting
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 
 from PIL import ImageTk, Image # for inserting an image as a label
 
@@ -67,7 +68,8 @@ class Shopper(object):
     def submitFunc(self): 
         text = self.text.get('1.0', 'end-1c')
         
-        driver = webdriver.Chrome('C:/Users/kvsha/Downloads/chromedriver_win32/chromedriver.exe')
+        
+        driver = webdriver.Chrome() # shortcut because chrome driver on system path
         driver.get('https://amazon.com')
 
         driver.maximize_window() # For maximizing window
@@ -82,8 +84,7 @@ class Shopper(object):
         search_button.click() # click the button
 
 
-        #TODO fix selenium.common.exceptions.WebDriverException: Message: unknown error: cannot determine loading status
-        #TODO fix selenium.common.exceptions.WebDriverException: Message: unknown error: unexpected command response
+        driver.close()
     
         # get all the text in a list
         #item_information = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.CLASS_NAME, 'a-size-base-plus a-color-base a-text-normal')))
@@ -111,3 +112,19 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+''' 
+additional notes
+
+fix selenium.common.exceptions.WebDriverException: Message: unknown error: cannot determine loading status
+ fix selenium.common.exceptions.WebDriverException: Message: unknown error: unexpected command response
+
+these two errors kept popping up at random, sometimes not allowing the proper
+exiting of the selenium controled google chrome window
+this was a random error, which means i could put in the same information
+and basically everying, even to the input being the same
+the actual error was in the chromedriver version, and converting to a higher version and 
+therefore a chrome beta was not working, so I had to use chromium to download an earlier version
+of chrome and use the corresponding chromedriver v.102 to make it work    
+'''

@@ -8,7 +8,7 @@ import time # for debugging
 
 from selenium import webdriver # for accessing and searching amazon's database of items
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException
+from selenium.common.exceptions import InvalidSelectorException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait # for implicitly waiting
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
@@ -68,28 +68,61 @@ class Shopper(object):
     def submitFunc(self): 
         text = self.text.get('1.0', 'end-1c')
         
+        # gets rid of 'Failed to read descriptor from node connection: A device attached to the system is not functioning'
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        driver = webdriver.Chrome() # shortcut because chrome driver on system path
+        driver = webdriver.Chrome(options=options) # shortcut because chrome driver on system path
         driver.get('https://amazon.com')
 
         driver.maximize_window() # For maximizing window
 
         # either visibility_of_element_located or presence_of_element_located works
-        # put an implicit wait for 20 seconds to find the text box, then send self.text to the search box
-        amazon_text_box = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.ID, 'twotabsearchtextbox')))
-        amazon_text_box.send_keys(text)
+        # put an implicit wait for 3 seconds to find the text box, then send self.text to the search box
+        
+        # use try except for the other variation of the website
+        try:
+            amazon_text_box = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'twotabsearchtextbox')))
+            amazon_text_box.send_keys(text)
+        except TimeoutException as e:
+            amazon_text_box = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'nav-bb-search')))
+            amazon_text_box.send_keys(text)
 
         # find the button and click it after the text has been inserted 
-        search_button = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.ID, 'nav-search-submit-button')))
-        search_button.click() # click the button
+        try:
+            search_button = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'nav-search-submit-button')))
+            search_button.click() # click the button
+        except TimeoutException as e: # required for the other version of the website
+            search_button = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.CLASS_NAME, 'nav-bb-button')))
+            search_button.click()
+        
+        # get the first 10 items on the screen and print the text of these items using a loop
+        # the class_names in the websites are acutally mulitple class names when they are combined by spaces
+        search_items = WebDriverWait(driver,3).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-base-plus.a-color-base.a-text-normal .a-size-medium')))[:10]
+        for elem in search_items:
+            print(elem.text)
 
+        # span[class='a-size-medium']
+
+        # tea arrangement: a-size-base-plus a-color-base a-text-normal
+        # keyboard arrangment: a-size-medium a-color-base a-text-normal
+
+        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[7]/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="anonCarousel3"]/ol/li[1]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
+
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div[3]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div[3]/div[1]/h2/a/span
 
         driver.close()
-    
-        # get all the text in a list
-        #item_information = WebDriverWait(driver,20).until(EC.visibility_of_element_located((By.CLASS_NAME, 'a-size-base-plus a-color-base a-text-normal')))
-        #item_information = item_information[:10] # get the first 10 elements
-        #print(len(item_information))
+        
 
 def placeGUI(event, obj, window): # this is how to configure placegui when resizing the window
     #print("placeGUI function has been run")

@@ -98,9 +98,14 @@ class Shopper(object):
         
         # get the first 10 items on the screen and print the text of these items using a loop
         # the class_names in the websites are acutally mulitple class names when they are combined by spaces
-        search_items = WebDriverWait(driver,3).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-base-plus.a-color-base.a-text-normal .a-size-medium')))[:10]
-        for elem in search_items:
+        # all_of finds both of the lists with the corresponding id and class name
+        search_items = WebDriverWait(driver,3).until(EC.all_of(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-base-plus.a-color-base.a-text-normal')),
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-medium.a-color-base.a-text-normal'))))
+        item_list = (search_items[0] if len(search_items[0]) > len(search_items[1]) else search_items[1])[:10]
+        for elem in item_list:
             print(elem.text)
+
 
         # span[class='a-size-medium']
 

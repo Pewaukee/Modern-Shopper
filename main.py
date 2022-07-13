@@ -141,5 +141,23 @@ extra html i think mostly xpaths
         #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div[3]/div[1]/h2/a/span
         #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div[3]/div[1]/h2/a/span
         
+extra code for checking which class the desired element was that was selected
+
+        
+        if len(search_items[0]) > len(search_items[1]):
+            items = search_items[0][:10]
+            self.item_class_name = 'a-size-base-plus a-color-base a-text-normal'
+        else:
+            items = search_items[1][:10]
+            self.item_class_name = 'a-size-medium a-color-base a-text-normal'
+
+code for getting the links, which worked a little
+didn't get the correct links, because it would get all the links, which sometimes
+wouldn't be the item it was matching to
+
+didnt need to get all the links, needed to scrape the bigger tier element and then find
+it's attributes
+
+
 
 '''

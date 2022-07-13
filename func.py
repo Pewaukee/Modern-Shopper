@@ -1,9 +1,11 @@
 from selenium import webdriver # for accessing and searching amazon's database of items
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, TimeoutException
+from selenium.common.exceptions import InvalidSelectorException, TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait # for implicitly waiting
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+
+import time
 
 class Driver:
     def __init__(self) -> None:
@@ -41,18 +43,17 @@ class Driver:
         # if there is a misspell, then we need to delete the first two text boxes of each list
         # start with the second element, then move on to the first element,
         # as to not mess with deletion and accessing the wrong element
-        def check_contains(i:int, j:int):
+        def check_contains(i:int):
             # convert to string using text just to be safe and sure it will be deleted
-            if items[i][j].text.__contains__('Did you mean'):
-                del items[i][j]
-        check_contains(0, 1) 
-        check_contains(1, 1)
-        check_contains(0, 0)
-        check_contains(1, 0)
+            if items[i].text.__contains__('Did you mean'):
+                del items[i]
+        check_contains(1) 
+        check_contains(0)
     
     def test(self, text:str):
         item = WebDriverWait(self.driver,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))
-        unique_class_name = WebDriverWait(item,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')))
+        unique_class_name = item.find_element(By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')
+        #WebDriverWait(item,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')))
         print(unique_class_name.get_attribute('class'))
         #TODO use this template to find the correct items all in one place
 
@@ -62,43 +63,51 @@ class Driver:
         # get the first 10 items on the screen and print the text of these items using a loop
         # the class_names in the websites are acutally mulitple class names when they are combined by spaces
         # all_of finds both of the lists with the corresponding id and class name
-        search_items = WebDriverWait(self.driver,5).until(EC.all_of(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-base-plus.a-color-base.a-text-normal')),
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-medium.a-color-base.a-text-normal'))))
-        print(type(search_items[0][0]))
+        search_items = WebDriverWait(self.driver,3).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))
+        # init 2 lists, one for the objects that are stored right and left next to each other, and items stored vertically on top of each other
+        # by css style (vertically = .a-size-medium.a-color-base.a-text-normal, horizontally = .a-size-base-plus.a-color-base.a-text-normal)
+        list1 = list2 = list()
+        for item in search_items:
+            # searches for the keyboard style where the items were placed one on top of each other
+            try: 
+                
+                list1.append(item.find_element(By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal'))
+            except NoSuchElementException as e:
+                pass
+            try: 
+                list2.append(item.find_element(By.CSS_SELECTOR, '.a-size-base-plus.a-color-base.a-text-normal'))
+            except NoSuchElementException as e: # this will happen if it fits in neither item list, vertically or horizontally spaced items
+                pass # aka if it is a price
+        #TODO when searching through the page for results, with different css selectors the lists are the same
+        for i in range(max(len(list1),len(list2))):
+            print(list1[i].text[:20], list2[i].text[:20])
+            
+        # assign the new list to whichever css style of vertically or horizontally next to each other gave the longest list
+        items = (list1 if len(list1) > len(list2) else list2)[:10]
+        print(len(items))
         
-        self.check_misspell(search_items)
         
-        if len(search_items[0]) > len(search_items[1]):
-            items = search_items[0][:10]
-            self.item_class_name = 'a-size-base-plus a-color-base a-text-normal'
-        else:
-            items = search_items[1][:10]
-            self.item_class_name = 'a-size-medium a-color-base a-text-normal'
-        #TODO perhaps call by link first, since link is the higher tier than the normal class
-        for elem in items:
-            print(elem.get_attribute('href'))
-
-        links = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located(
-            (By.CSS_SELECTOR, '.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))[:20:2]
+        #TODO since getting by a higher header, this needs to be changed
+        #self.check_misspell(items)
         
         self.print_to_console(items)
 
-        self.add_to_file(items, links, text)
+        self.add_to_file(items, text)
 
         self.driver.close()
     
     def print_to_console(self, items:list):
-        for item in items:
-            print(item.text)
+        for i in range(len(items)):
+            print(i, items[i].text)
         print()
     
-    def add_to_file(self, items:list, links:list, text:str) -> None:
+    def add_to_file(self, items:list, text:str) -> None:
         with open('file.txt', 'a') as f:
             f.write(f'{text.capitalize()}:\n\n') # put the search item at the top
             for i in range(10):
                 f.write(items[i].text + '\n')
-                f.write(links[i].get_attribute('href') + '\n\n')
+                f.write(items[i].get_attribute('href') + '\n\n')
             f.write('-'*30 + '\n\n')
 
 
@@ -106,5 +115,5 @@ def find(text:str) -> None:
     driver = Driver()
     driver.set_link('https://amazon.com')
     driver.search(text)
-    #driver.get_items(text)
-    driver.test(text)
+    driver.get_items(text)
+    #driver.test(text)

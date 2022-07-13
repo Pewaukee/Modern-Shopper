@@ -6,14 +6,45 @@ from tkinter import * # for gui
 
 import time # for debugging
 
-from selenium import webdriver # for accessing and searching amazon's database of items
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait # for implicitly waiting
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
+from func import *
 
-from PIL import ImageTk, Image # for inserting an image as a label
+
+
+
+def main() -> None:
+    welcome = 'Welcome to modern shopper!'
+    print(welcome + '\n')
+    exit_str = 'exit'
+    while True:
+        user_input = input("What would you like to shop for?: ")
+        if user_input == exit_str: break
+        # call the function to get the items
+        find(user_input)
+        print("----------------------\nItems added to session file")
+
+
+    
+
+
+if __name__ == '__main__':
+    main()
+
+
+''' 
+additional notes
+
+fix selenium.common.exceptions.WebDriverException: Message: unknown error: cannot determine loading status
+ fix selenium.common.exceptions.WebDriverException: Message: unknown error: unexpected command response
+
+these two errors kept popping up at random, sometimes not allowing the proper
+exiting of the selenium controled google chrome window
+this was a random error, which means i could put in the same information
+and basically everying, even to the input being the same
+the actual error was in the chromedriver version, and converting to a higher version and 
+therefore a chrome beta was not working, so I had to use chromium to download an earlier version
+of chrome and use the corresponding chromedriver v.102 to make it work  
+
+extra code with gui elements
 
 class Shopper(object):
     def __init__(self, window) -> None:
@@ -64,78 +95,19 @@ class Shopper(object):
     def quitFunc(self):
         print('exiting with code 5')
         exit(5)
-
+    
+    
     def submitFunc(self): 
-        text = self.text.get('1.0', 'end-1c')
-        
-        # gets rid of 'Failed to read descriptor from node connection: A device attached to the system is not functioning'
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        
-        driver = webdriver.Chrome(options=options) # shortcut because chrome driver on system path
-        driver.get('https://amazon.com')
-
-        driver.maximize_window() # For maximizing window
-
-        # either visibility_of_element_located or presence_of_element_located works
-        # put an implicit wait for 3 seconds to find the text box, then send self.text to the search box
-        
-        # use try except for the other variation of the website
-        try:
-            amazon_text_box = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'twotabsearchtextbox')))
-            amazon_text_box.send_keys(text)
-        except TimeoutException as e:
-            amazon_text_box = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'nav-bb-search')))
-            amazon_text_box.send_keys(text)
-
-        # find the button and click it after the text has been inserted 
-        try:
-            search_button = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.ID, 'nav-search-submit-button')))
-            search_button.click() # click the button
-        except TimeoutException as e: # required for the other version of the website
-            search_button = WebDriverWait(driver,3).until(EC.visibility_of_element_located((By.CLASS_NAME, 'nav-bb-button')))
-            search_button.click()
-        
-        # get the first 10 items on the screen and print the text of these items using a loop
-        # the class_names in the websites are acutally mulitple class names when they are combined by spaces
-        # all_of finds both of the lists with the corresponding id and class name
-        search_items = WebDriverWait(driver,3).until(EC.all_of(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-base-plus.a-color-base.a-text-normal')),
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-size-medium.a-color-base.a-text-normal'))))
-        item_list = (search_items[0] if len(search_items[0]) > len(search_items[1]) else search_items[1])[:10]
-        for elem in item_list:
-            print(elem.text)
-
-
-        # span[class='a-size-medium']
-
-        # tea arrangement: a-size-base-plus a-color-base a-text-normal
-        # keyboard arrangment: a-size-medium a-color-base a-text-normal
-
-        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
-        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
-        
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[7]/div/div/div/div/div[2]/div[1]/h2/a/span
-        #//*[@id="anonCarousel3"]/ol/li[1]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
-
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
-
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div[3]/div[1]/h2/a/span
-        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div[3]/div[1]/h2/a/span
-
-        driver.close()
-        
-
-def placeGUI(event, obj, window): # this is how to configure placegui when resizing the window
+        pass
+    
+    def placeGUI(event, obj, window): # this is how to configure placegui when resizing the window
     #print("placeGUI function has been run")
     obj.placeGUI()
     #print(f'width = {window.winfo_width()}, height = {window.winfo_height()}')
 
-def main():
-    # make the general window and setup the gui
+main lines for creating window
+
+# make the general window and setup the gui
     window = Tk()
     window.title('Modern Shopper')
     window.configure(width=800, height=800)
@@ -148,21 +120,26 @@ def main():
     window.bind("<Configure>", lambda event: placeGUI(event, obj, window))
     window.mainloop()
 
-if __name__ == '__main__':
-    main()
+extra html i think mostly xpaths
 
+# span[class='a-size-medium']
 
-''' 
-additional notes
+        # tea arrangement: a-size-base-plus a-color-base a-text-normal
+        # keyboard arrangment: a-size-medium a-color-base a-text-normal
 
-fix selenium.common.exceptions.WebDriverException: Message: unknown error: cannot determine loading status
- fix selenium.common.exceptions.WebDriverException: Message: unknown error: unexpected command response
+        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
 
-these two errors kept popping up at random, sometimes not allowing the proper
-exiting of the selenium controled google chrome window
-this was a random error, which means i could put in the same information
-and basically everying, even to the input being the same
-the actual error was in the chromedriver version, and converting to a higher version and 
-therefore a chrome beta was not working, so I had to use chromium to download an earlier version
-of chrome and use the corresponding chromedriver v.102 to make it work    
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[4]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[7]/div/div/div/div/div[2]/div[1]/h2/a/span
+        #//*[@id="anonCarousel3"]/ol/li[1]/div/div/div/div/div/div/div[2]/div[1]/h2/a/span
+
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div[1]/h2/a/span
+
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div[3]/div[1]/h2/a/span
+        #//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[3]/div/div/div/div/div[3]/div[1]/h2/a/span
+        
+
 '''

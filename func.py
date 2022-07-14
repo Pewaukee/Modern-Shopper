@@ -13,7 +13,7 @@ class Driver:
         options = webdriver.ChromeOptions()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         self.driver = webdriver.Chrome(options=options) # shortcut because chrome driver on system path
-        self.item_class_name = None
+        self.session_id = 0
 
     def set_link(self, link:str) -> None:
         self.driver.get(link)
@@ -50,12 +50,7 @@ class Driver:
         check_contains(1) 
         check_contains(0)
     
-    def test(self, text:str):
-        item = WebDriverWait(self.driver,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))
-        unique_class_name = item.find_element(By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')
-        #WebDriverWait(item,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')))
-        print(unique_class_name.get_attribute('class'))
-        #TODO use this template to find the correct items all in one place
+    
 
     def get_items(self, text:str):
         
@@ -67,27 +62,32 @@ class Driver:
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, '#search .a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))
         # init 2 lists, one for the objects that are stored right and left next to each other, and items stored vertically on top of each other
         # by css style (vertically = .a-size-medium.a-color-base.a-text-normal, horizontally = .a-size-base-plus.a-color-base.a-text-normal)
-        list1 = list2 = list()
-        for item in search_items:
+        
+        list1 = list()
+        for i in range(len(search_items)):
+            if len(list1) == 10: break
             # searches for the keyboard style where the items were placed one on top of each other
-            try: 
-                
-                list1.append(item.find_element(By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal'))
+            try:
+                element = search_items[i].find_element(By.CSS_SELECTOR, '.a-size-medium') # this finds both items i think
+                if element.text != "": list1.append(search_items[i])
+                continue
             except NoSuchElementException as e:
                 pass
-            try: 
-                list2.append(item.find_element(By.CSS_SELECTOR, '.a-size-base-plus.a-color-base.a-text-normal'))
+            try:
+                element = search_items[i].find_element(By.CSS_SELECTOR, '.a-size-base-plus')
+                if element.text != "": list1.append(search_items[i])
+                continue
             except NoSuchElementException as e: # this will happen if it fits in neither item list, vertically or horizontally spaced items
                 pass # aka if it is a price
         #TODO when searching through the page for results, with different css selectors the lists are the same
-        for i in range(max(len(list1),len(list2))):
-            print(list1[i].text[:20], list2[i].text[:20])
+        #for i in range(max(len(list1),len(list2))):
+            #print(list1[i].text[:20], list2[i].text[:20])
             
         # assign the new list to whichever css style of vertically or horizontally next to each other gave the longest list
-        items = (list1 if len(list1) > len(list2) else list2)[:10]
-        print(len(items))
+        #items = (list1 if len(list1) > len(list2) else list2)[:10]
+        #print(len(items))
         
-        
+        items = list1
         #TODO since getting by a higher header, this needs to be changed
         #self.check_misspell(items)
         
@@ -97,23 +97,28 @@ class Driver:
 
         self.driver.close()
     
-    def print_to_console(self, items:list):
+    def print_to_console(self, items:list) -> None:
         for i in range(len(items)):
-            print(i, items[i].text)
+            print(i+1, items[i].text)
         print()
     
     def add_to_file(self, items:list, text:str) -> None:
-        with open('file.txt', 'a') as f:
+        with open(f'file{self.session_id}.txt', 'a') as f:
             f.write(f'{text.capitalize()}:\n\n') # put the search item at the top
             for i in range(10):
-                f.write(items[i].text + '\n')
+                f.write(f'{i+1}. {items[i].text} + \n')
                 f.write(items[i].get_attribute('href') + '\n\n')
             f.write('-'*30 + '\n\n')
 
+    def find_session_id(self) -> None:
+        try:
+            while True:
+                with open(f'file{self.session_id}.txt', 'r') as f:
+                    self.session_id+=1
+        except FileNotFoundError:
+            return
 
-def find(text:str) -> None:
-    driver = Driver()
+def find(text:str, driver) -> None:
     driver.set_link('https://amazon.com')
     driver.search(text)
     driver.get_items(text)
-    #driver.test(text)

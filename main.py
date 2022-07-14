@@ -15,12 +15,15 @@ def main() -> None:
     welcome = 'Welcome to modern shopper!'
     print(welcome + '\n')
     exit_str = 'exit'
+    driver = Driver()
+    driver.find_session_id()
     while True:
         user_input = input("What would you like to shop for?: ")
         if user_input == exit_str: break
+        print('Fetching data...\n')
         # call the function to get the items
-        find(user_input)
-        print("----------------------\nItems added to session file")
+        find(user_input, driver)
+        print("----------------------\nItems added to session file\n")
 
 
     
@@ -158,6 +161,13 @@ wouldn't be the item it was matching to
 didnt need to get all the links, needed to scrape the bigger tier element and then find
 it's attributes
 
+extra code that was used to test to find a bigger type of html directory where both the link and text were stored
 
+def test(self, text:str):
+        item = WebDriverWait(self.driver,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal')))
+        unique_class_name = item.find_element(By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')
+        #WebDriverWait(item,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')))
+        print(unique_class_name.get_attribute('class'))
+        # use this template to find the correct items all in one place
 
 '''

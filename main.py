@@ -15,15 +15,22 @@ def main() -> None:
     welcome = 'Welcome to modern shopper!'
     print(welcome + '\n')
     exit_str = 'exit'
+
     driver = Driver()
     driver.find_session_id()
+
     while True:
-        user_input = input("What would you like to shop for?: ")
+        user_input = input("What would you like to shop for?: ").strip()
         if user_input == exit_str: break
         print('Fetching data...\n')
+
         # call the function to get the items
-        find(user_input, driver)
+        driver.set_link('https://amazon.com')
+        driver.search(user_input)
+        driver.get_items(user_input)
+
         print("\nItems added to session file\n")
+        
     driver.close()
     
 

@@ -94,8 +94,6 @@ class Driver:
         self.print_to_console(items)
 
         self.add_to_file(items, text)
-
-        self.driver.close()
     
     def print_to_console(self, items:list) -> None:
         for i in range(len(items)):

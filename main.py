@@ -23,9 +23,8 @@ def main() -> None:
         print('Fetching data...\n')
         # call the function to get the items
         find(user_input, driver)
-        print("----------------------\nItems added to session file\n")
-
-
+        print("\nItems added to session file\n")
+    driver.close()
     
 
 

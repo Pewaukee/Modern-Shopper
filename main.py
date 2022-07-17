@@ -1,37 +1,31 @@
-from numpy import pad, place
-import requests
-from bs4 import BeautifulSoup # for making requests to the google search engine
-
-from tkinter import * # for gui
-
-import time # for debugging
-
-from func import *
-
-
-
+from func import Driver # only need the class name so we can make the new object
 
 def main() -> None:
-    welcome = 'Welcome to modern shopper!'
-    print(welcome + '\n')
-    exit_str = 'exit'
+    print('Welcome to modern shopper!\n')
 
+    # make a new driver class object to run the func.py functions from
     driver = Driver()
     driver.find_session_id()
 
     while True:
+        '''purpose
+        this while true loop reads input from the user, 
+        and uses that data to search the amazon database
+        using selenium and the functions in func.py,
+        then returns by printing and adding to a file
+        the results of the execution
+        '''
         user_input = input("What would you like to shop for?: ").strip()
-        if user_input == exit_str: break
+        if user_input == 'exit': break
         print('Fetching data...\n')
 
         # call the function to get the items
         driver.set_link('https://amazon.com')
         driver.search(user_input)
-        driver.get_items(user_input)
 
-        print("\nItems added to session file\n")
+        print("Items added to session file\n")
         
-    driver.close()
+    driver.driver.close() # use the attribute of driver to close, since the attribute is defined as driver
     
 
 
@@ -175,5 +169,18 @@ def test(self, text:str):
         #WebDriverWait(item,3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.a-size-medium.a-color-base.a-text-normal')))
         print(unique_class_name.get_attribute('class'))
         # use this template to find the correct items all in one place
+
+extra code for misspelling an item to be shopped for
+
+def check_misspell(self, items:list) -> list:
+        # if there is a misspell, then we need to delete the first two text boxes of each list
+        # start with the second element, then move on to the first element,
+        # as to not mess with deletion and accessing the wrong element
+        def check_contains(i:int):
+            # convert to string using text just to be safe and sure it will be deleted
+            if items[i].text.__contains__('Did you mean'):
+                del items[i]
+        check_contains(1) 
+        check_contains(0)
 
 '''
